@@ -27,17 +27,21 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const { cliente, direccion, estado, total } = req.body;
-        const query = `
-        INSERT INTO pedidos (cliente, direccion, estado, total) 
-        VALUES ($1, $2, $3, $4) 
-        RETURNING id
-        `;
-        const { rows } = await db.query(query, [cliente, direccion, estado, total]);
         
-        // ✅ DEVUELVE EL ID
+        // ✅ FECHA LOCAL CST (El Salvador)
+        const fechaLocal = new Date().toISOString();
+        
+        const query = `
+        INSERT INTO pedidos (cliente, direccion, estado, total, fecha_creado) 
+        VALUES ($1, $2, $3, $4, $5) 
+        RETURNING id, fecha_creado as fecha
+        `;
+        const { rows } = await db.query(query, [cliente, direccion, estado, total, fechaLocal]);
+        
         res.json({ 
-        success: true, 
-        id: rows[0].id  // ← ESTO ES CLAVE
+            success: true, 
+            id: rows[0].id,
+            fecha: rows[0].fecha  // ← Para mostrar en frontend
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
