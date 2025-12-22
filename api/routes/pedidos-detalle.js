@@ -6,22 +6,34 @@ router.post('/', async (req, res) => {
     try {
         const { pedido_id, producto_id, cantidad_vendida, precio_venta, subtotal } = req.body;
         
-        // ✅ FECHA LOCAL CST (El Salvador)
-        const fechaLocal = new Date().toISOString();
+        // ✅ HORA LOCAL CST (El Salvador)
+        const ahora = new Date();
+        const fechaLocal = ahora.toLocaleString('sv-SV', { 
+            timeZone: 'America/El_Salvador' 
+        });
         
         const query = `
         INSERT INTO pedidos_detalle (pedido_id, producto_id, cantidad_vendida, precio_venta, subtotal, fecha_creado)
         VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id, fecha_creado as fecha
+        RETURNING id, fecha_creado
         `;
         
-        const { rows } = await db.query(query, [pedido_id, producto_id, cantidad_vendida, precio_venta, subtotal, fechaLocal]);
-        res.json({ success: true, id: rows[0].id, fecha: rows[0].fecha });
+        const { rows } = await db.query(query, [
+            pedido_id, 
+            producto_id, 
+            cantidad_vendida, 
+            precio_venta, 
+            subtotal, 
+            fechaLocal  // ← "2025-12-22 09:26:48"
+        ]);
+        
+        res.json({ success: true, id: rows[0].id });
     } catch (error) {
         console.error('Error detalle:', error);
         res.status(500).json({ error: error.message });
     }
 });
+
 
 
 module.exports = router;

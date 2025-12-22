@@ -28,8 +28,11 @@ router.post('/', async (req, res) => {
     try {
         const { cliente, direccion, estado, total } = req.body;
         
-        // ✅ FECHA LOCAL CST (El Salvador)
-        const fechaLocal = new Date().toISOString();
+        // ✅ HORA LOCAL CST (El Salvador)
+        const ahora = new Date();
+        const fechaLocal = ahora.toLocaleString('sv-SV', { 
+            timeZone: 'America/El_Salvador' 
+        });
         
         const query = `
         INSERT INTO pedidos (cliente, direccion, estado, total, fecha_creado) 
