@@ -11,24 +11,21 @@ router.get('/', async (req, res) => {
 
         switch (periodo) {
             case 'hoy':
-                // ✅ Solo Día (ignora hora)
-                whereClause = `WHERE DATE(pd.fecha_creado AT TIME ZONE '${tzLocal}') = CURRENT_DATE`;
+                whereClause = `WHERE DATE(pd.fecha_creado AT TIME ZONE '${tzLocal}') = DATE(CURRENT_DATE AT TIME ZONE '${tzLocal}')`;
                 break;
             case 'semana':
-                // ✅ Solo Semana (ignora hora)
                 whereClause = `WHERE date_trunc('week', pd.fecha_creado AT TIME ZONE '${tzLocal}') = date_trunc('week', CURRENT_DATE AT TIME ZONE '${tzLocal}')`;
                 break;
             case 'mes':
-                // ✅ Solo Mes (ignora hora)
                 whereClause = `WHERE DATE_TRUNC('month', pd.fecha_creado AT TIME ZONE '${tzLocal}') = DATE_TRUNC('month', CURRENT_DATE AT TIME ZONE '${tzLocal}')`;
                 break;
             case 'año':
-                // ✅ Solo Año (ignora hora)
-                whereClause = `WHERE EXTRACT(YEAR FROM pd.fecha_creado AT TIME ZONE '${tzLocal}') = EXTRACT(YEAR FROM CURRENT_DATE)`;
+                whereClause = `WHERE EXTRACT(YEAR FROM pd.fecha_creado AT TIME ZONE '${tzLocal}') = EXTRACT(YEAR FROM CURRENT_DATE AT TIME ZONE '${tzLocal}')`;
                 break;
             default:
                 whereClause = '';
         }
+
 
         const query = `
         SELECT 
