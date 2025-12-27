@@ -7,22 +7,24 @@ router.get('/', async (req, res) => {
         const { periodo } = req.query;
         let whereClause = '';
         let params = [];
-
-        // ✅ TZ LOCAL 'America/El_Salvador' para TODAS las comparaciones
         const tzLocal = "America/El_Salvador";
-        
+
         switch (periodo) {
             case 'hoy':
-                whereClause = `WHERE pd.fecha_creado >= CURRENT_DATE AT TIME ZONE '${tzLocal}'`;
+                // ✅ Solo Día (ignora hora)
+                whereClause = `WHERE DATE(pd.fecha_creado AT TIME ZONE '${tzLocal}') = CURRENT_DATE`;
                 break;
             case 'semana':
-                whereClause = `WHERE pd.fecha_creado >= date_trunc('week', CURRENT_DATE AT TIME ZONE '${tzLocal}') AT TIME ZONE '${tzLocal}'`;
+                // ✅ Solo Semana (ignora hora)
+                whereClause = `WHERE date_trunc('week', pd.fecha_creado AT TIME ZONE '${tzLocal}') = date_trunc('week', CURRENT_DATE AT TIME ZONE '${tzLocal}')`;
                 break;
             case 'mes':
-                whereClause = `WHERE pd.fecha_creado >= date_trunc('month', CURRENT_DATE AT TIME ZONE '${tzLocal}') AT TIME ZONE '${tzLocal}'`;
+                // ✅ Solo Mes (ignora hora)
+                whereClause = `WHERE DATE_TRUNC('month', pd.fecha_creado AT TIME ZONE '${tzLocal}') = DATE_TRUNC('month', CURRENT_DATE AT TIME ZONE '${tzLocal}')`;
                 break;
             case 'año':
-                whereClause = `WHERE pd.fecha_creado >= date_trunc('year', CURRENT_DATE AT TIME ZONE '${tzLocal}') AT TIME ZONE '${tzLocal}'`;
+                // ✅ Solo Año (ignora hora)
+                whereClause = `WHERE EXTRACT(YEAR FROM pd.fecha_creado AT TIME ZONE '${tzLocal}') = EXTRACT(YEAR FROM CURRENT_DATE)`;
                 break;
             default:
                 whereClause = '';
@@ -57,6 +59,7 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 
 module.exports = router;
