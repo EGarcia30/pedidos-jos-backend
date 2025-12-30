@@ -57,6 +57,55 @@ router.get('/', async (req, res) => {
     }
 });
 
+// productos más vendidos
+router.get('/productos-vendidos', async (req, res) => {
+    try {
+        const { periodo } = req.query;
+        let whereClause = '';
+        const tzLocal = "America/El_Salvador";
 
+        switch (periodo) {
+            case 'hoy':
+                whereClause = `WHERE DATE(pd.fecha_creado AT TIME ZONE '${tzLocal}') = DATE(CURRENT_DATE AT TIME ZONE '${tzLocal}')`;
+                break;
+            case 'semana':
+                whereClause = `WHERE date_trunc('week', pd.fecha_creado AT TIME ZONE '${tzLocal}') = date_trunc('week', CURRENT_DATE AT TIME ZONE '${tzLocal}')`;
+                break;
+            case 'mes':
+                whereClause = `WHERE DATE_TRUNC('month', pd.fecha_creado AT TIME ZONE '${tzLocal}') = DATE_TRUNC('month', CURRENT_DATE AT TIME ZONE '${tzLocal}')`;
+                break;
+            case 'año':
+                whereClause = `WHERE EXTRACT(YEAR FROM pd.fecha_creado AT TIME ZONE '${tzLocal}') = EXTRACT(YEAR FROM CURRENT_DATE AT TIME ZONE '${tzLocal}')`;
+                break;
+            default:
+                whereClause = '';
+        }
+
+        const query = `
+        SELECT 
+            p.id,
+            p.nombre,
+            p.precio_venta,
+            COALESCE(SUM(pd.cantidad_vendida), 0) as cantidad_vendida,
+            COALESCE(SUM(pd.subtotal), 0) as total_vendido
+        FROM productos p
+        LEFT JOIN pedidos_detalle pd ON p.id = pd.producto_id
+        LEFT JOIN pedidos pe ON pd.pedido_id = pe.id ${whereClause}
+        GROUP BY p.id, p.nombre, p.precio_venta
+        ORDER BY cantidad_vendida DESC NULLS LAST
+        LIMIT 10
+        `;
+
+        const { rows } = await db.query(query);
+        
+        res.json({ 
+            success: true, 
+            data: rows
+        });
+    } catch (error) {
+        console.error('Error productos vendidos:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 module.exports = router;
